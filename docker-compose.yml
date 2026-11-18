@@ -1,0 +1,23 @@
+
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: milkdesk-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: milkdesk
+      POSTGRES_PASSWORD: milkdesk_dev_password
+      POSTGRES_DB: milkdesk
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - milkdesk_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U milkdesk -d milkdesk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  milkdesk_data:

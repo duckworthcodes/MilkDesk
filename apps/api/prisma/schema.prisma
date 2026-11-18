@@ -1,0 +1,143 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CowStatus {
+  ACTIVE
+  DRY
+  SICK
+  SOLD
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  OTHER
+}
+
+
+model Customer {
+  id                  String     @id @default(cuid())
+  name                String
+  phone               String?
+  address             String?
+  defaultRatePaise    Int
+  isActive            Boolean    @default(true)
+  deactivatedAt       DateTime?
+  deactivationReason  String?
+
+  deliveries          Delivery[]
+  invoices            Invoice[]
+  payments            Payment[]
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Cow {
+  id          String         @id @default(cuid())
+  tagNumber   String         @unique
+  name        String?
+  breed       String?
+  status      CowStatus     @default(ACTIVE)
+  collections MilkCollection[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model MilkCollection {
+  id          String   @id @default(cuid())
+  cowId       String
+  cow         Cow      @relation(fields: [cowId], references: [id])
+  quantityMl  Int
+  collectedAt DateTime @default(now())
+  notes       String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([collectedAt])
+}
+
+model Delivery {
+  id                  String    @id @default(cuid())
+  customerId          String
+  customer            Customer  @relation(fields: [customerId], references: [id])
+
+  quantityMl          Int
+  ratePerLitrePaise   Int
+  amountPaise         Int
+
+  deliveredAt         DateTime  @default(now())
+  invoiceId           String?
+  invoice             Invoice?  @relation(fields: [invoiceId], references: [id])
+  notes               String?
+
+  createdAt           DateTime  @default(now())
+
+  @@index([customerId, deliveredAt])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+
+  periodStart   DateTime      @db.Date
+  periodEnd     DateTime      @db.Date
+  totalPaise    Int
+  status        InvoiceStatus @default(ISSUED)
+
+  deliveries    Delivery[]
+  payments      Payment[]
+
+  createdAt     DateTime      @default(now())
+
+  @@unique([customerId, periodStart])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+
+  invoiceId   String?
+  invoice     Invoice?      @relation(fields: [invoiceId], references: [id])
+
+  amountPaise Int
+  method      PaymentMethod
+  paidAt      DateTime      @default(now())
+  reference   String?
+  notes       String?
+
+  createdAt   DateTime      @default(now())
+
+  @@index([customerId, paidAt])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String
+  amountPaise Int
+  description String?
+  spentAt     DateTime @default(now())
+
+  createdAt   DateTime @default(now())
+}
