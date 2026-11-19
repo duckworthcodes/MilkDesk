@@ -1,24 +1,15 @@
-
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Activity,
-  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
   Check,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   CircleAlert,
-  Clock3,
-  Command,
-  CreditCard,
   Droplets,
   Ellipsis,
   FileText,
-  Filter,
   LayoutGrid,
   Leaf,
   Menu,
@@ -35,8 +26,7 @@ import {
   X,
 } from "lucide-react";
 import "./App.css";
-
-const API_URL = "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 type Customer = {
   id: string;
