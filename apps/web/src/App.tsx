@@ -247,12 +247,26 @@ function App() {
         throw new Error(data.error || "Unable to save customer.");
       }
 
+      // PATCH returns { message, customer }, while POST returns the customer.
+      // Normalize both responses before updating the frontend state.
+      const savedCustomer: Customer = isEditing
+        ? data.customer
+        : data;
+
+      if (!savedCustomer?.id) {
+        throw new Error("The server returned an invalid customer response.");
+      }
+
       setCustomers((previous) =>
         isEditing
           ? previous
-              .map((customer) => customer.id === data.id ? data : customer)
+              .map((customer) =>
+                customer.id === savedCustomer.id ? savedCustomer : customer
+              )
               .sort((a, b) => a.name.localeCompare(b.name))
-          : [...previous, data].sort((a, b) => a.name.localeCompare(b.name))
+          : [...previous, savedCustomer].sort((a, b) =>
+              a.name.localeCompare(b.name)
+            )
       );
 
       setCustomerForm({ name: "", phone: "", address: "", rate: "50" });
